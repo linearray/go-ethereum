@@ -305,6 +305,26 @@ func (s *StateDB) GetCodeHash(addr common.Address) common.Hash {
 	return common.BytesToHash(stateObject.CodeHash())
 }
 
+// GetStorage returns all stored state for an address.
+// Keys are only provided when running with --cache.preimages, otherwise they are all zero.
+func (s *StateDB) GetStorage(addr common.Address) map[common.Hash]common.Hash {
+	res := make(map[common.Hash]common.Hash)
+	f := func(k common.Hash, v common.Hash) bool {
+		res[k] = v
+		// rlp.DecodeBytes(v[:], res[k])
+		return true
+	}
+
+	err := s.ForEachStorage(addr, f)
+
+	if err != nil {
+		s.setError(fmt.Errorf("getStorage (%x) error: %w", addr.Bytes(), err))
+		return nil
+	}
+
+	return res
+}
+
 // GetState retrieves a value from the given account's storage trie.
 func (s *StateDB) GetState(addr common.Address, hash common.Hash) common.Hash {
 	stateObject := s.getStateObject(addr)

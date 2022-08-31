@@ -817,6 +817,18 @@ func (s *PublicBlockChainAPI) GetCode(ctx context.Context, address common.Addres
 	return code, state.Error()
 }
 
+// GetStorage returns the storage from the state at the given address and
+// block number. The rpc.LatestBlockNumber and rpc.PendingBlockNumber meta block
+// numbers are also allowed.
+func (s *BlockChainAPI) GetStorage(ctx context.Context, address common.Address, blockNrOrHash rpc.BlockNumberOrHash) (map[common.Hash]common.Hash, error) {
+	state, _, err := s.b.StateAndHeaderByNumberOrHash(ctx, blockNrOrHash)
+	if state == nil || err != nil {
+		return nil, err
+	}
+	res := state.GetStorage(address)
+	return res, state.Error()
+}
+
 // GetStorageAt returns the storage from the state at the given address, key and
 // block number. The rpc.LatestBlockNumber and rpc.PendingBlockNumber meta block
 // numbers are also allowed.
