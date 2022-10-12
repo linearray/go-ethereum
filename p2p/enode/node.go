@@ -26,6 +26,7 @@ import (
 	"net"
 	"strings"
 
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/p2p/enr"
 	"github.com/ethereum/go-ethereum/rlp"
 )
@@ -167,9 +168,14 @@ func (n *Node) String() string {
 	if isNewV4(n) {
 		return n.URLv4() // backwards-compatibility glue for NewV4 nodes
 	}
-	enc, _ := rlp.EncodeToBytes(&n.r) // always succeeds because record is valid
-	b64 := base64.RawURLEncoding.EncodeToString(enc)
-	return "enr:" + b64
+
+	var udpAppendix string = ""
+
+	if n.UDP() != n.TCP() {
+		udpAppendix = "?discport=" + fmt.Sprint(n.UDP())
+	}
+
+	return "enr:" + fmt.Sprintf("%x", crypto.FromECDSAPub(n.Pubkey())[1:]) + "@" + n.IP().String() + ":" + fmt.Sprint(n.TCP()) + udpAppendix
 }
 
 // MarshalText implements encoding.TextMarshaler.

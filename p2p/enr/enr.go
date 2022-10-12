@@ -315,3 +315,18 @@ func (r *Record) encode(sig []byte) (raw []byte, err error) {
 	}
 	return raw, nil
 }
+
+func (r *Record) String() string {
+	var str string = "enr:"
+	for i, p := range r.pairs {
+		str += p.k
+		str += ":"
+		str += string(p.v)
+
+		if i < len(r.pairs) {
+			str += ","
+		}
+	}
+
+	return str
+}
