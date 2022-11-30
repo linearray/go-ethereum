@@ -28,7 +28,6 @@ import (
 	"fmt"
 	mrand "math/rand"
 	"net"
-	"os"
 	"sort"
 	"sync"
 	"time"
@@ -51,13 +50,13 @@ const (
 	bucketMinDistance = hashBits - nBuckets // Log distance of closest bucket
 
 	// IP address limits.
-	bucketIPLimit, bucketSubnet = 256, 24 // at most 2 addresses from the same /24
-	tableIPLimit, tableSubnet   = 256, 24
+	bucketIPLimit, bucketSubnet = 2, 24 // at most 2 addresses from the same /24
+	tableIPLimit, tableSubnet   = 10, 24
 
-	refreshInterval    = 60 * time.Second
+	refreshInterval    = 30 * time.Minute
 	revalidateInterval = 10 * time.Second
 	copyNodesInterval  = 30 * time.Second
-	seedMinTableTime   = 5 * time.Second
+	seedMinTableTime   = 5 * time.Minute
 	seedCount          = 30
 	seedMaxAge         = 5 * 24 * time.Hour
 )
@@ -468,16 +467,6 @@ func (tab *Table) addSeenNode(n *node) {
 
 	tab.mutex.Lock()
 	defer tab.mutex.Unlock()
-
-	f, err := os.OpenFile("peers", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0644)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	if _, err = f.WriteString(n.String() + "\n"); err != nil {
-		panic(err)
-	}
-
 	b := tab.bucket(n.ID())
 	if contains(b.entries, n.ID()) {
 		// Already in bucket, don't add.
